@@ -1,206 +1,118 @@
-<<<<<<< HEAD
 const API_BASE = "http://universities.hipolabs.com/search";
 let allUniversities = []; 
 let favorites = JSON.parse(localStorage.getItem("uni_favs")) || [];
 let showingFavorites = false; 
 
+function handleLiveInput() {
+    const query = document.getElementById("searchInput").value;
+    // When text is cleared, reload the default list instead of wiping data
+    if (query === "") {
+        fetchUniversities("", ""); 
+    }
+}
 
-async function fetchUniversities(country, name) {
-  let url = `${API_BASE}?name=${encodeURIComponent(name)}`;
-=======
-const API_BASE = "https://universities.hipolabs.com/search";
-let allUniversities = [];
-let favorites = JSON.parse(localStorage.getItem("uni_favs")) || [];
-let showingFavorites = false;
-
-async function fetchUniversities(country, name) {
-  const query = name.trim() === "" ? "a" : name.trim();
-  let url = `${API_BASE}?name=${encodeURIComponent(query)}`;
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
-  if (country) url += `&country=${encodeURIComponent(country)}`;
-
-  try {
-    showLoader();
-<<<<<<< HEAD
-    showingFavorites = false; 
-=======
+function clearAllFilters() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("countrySelect").selectedIndex = 0;
+    document.getElementById("sortSelect").selectedIndex = 0;
     showingFavorites = false;
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
-    updateFavButtonUI();
-
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Status: ${response.status}`);
-<<<<<<< HEAD
-    
-    const data = await response.json();
-    
-    allUniversities = data.filter(uni => uni.name); 
-    
-    applyFiltersAndSort(); 
-=======
-
-    const data = await response.json();
-    allUniversities = data.filter(uni => uni.name);
-    applyFiltersAndSort();
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
-  } catch (error) {
-    showError("❌ Failed to fetch data. Please try again.");
-  } finally {
-    hideLoader();
-  }
+    document.getElementById("favToggle").innerText = "View Favorites";
+    fetchUniversities("", ""); 
 }
 
-<<<<<<< HEAD
-
-function applyFiltersAndSort() {
-  const sortOrder = document.getElementById("sortSelect").value;
-  
-  
-  let dataToProcess = showingFavorites 
-    ? allUniversities.filter(uni => favorites.includes(uni.name)) 
-    : allUniversities;
-
-  
-  const processedData = [...dataToProcess].sort((a, b) => {
-    return sortOrder === "asc" 
-      ? a.name.localeCompare(b.name) 
-=======
-function applyFiltersAndSort() {
-  const sortOrder = document.getElementById("sortSelect").value;
-
-  let dataToProcess = showingFavorites
-    ? allUniversities.filter(uni => favorites.includes(uni.name))
-    : allUniversities;
-
-  const processedData = [...dataToProcess].sort((a, b) => {
-    return sortOrder === "asc"
-      ? a.name.localeCompare(b.name)
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
-      : b.name.localeCompare(a.name);
-  });
-
-  displayUniversities(processedData);
+async function fetchUniversities(country, name) {
+    try {
+        showLoader();
+        const response = await fetch(`${API_BASE}?name=${encodeURIComponent(name)}${country ? `&country=${encodeURIComponent(country)}` : ''}`);
+        const data = await response.json();
+        allUniversities = data.filter(uni => uni.name); 
+        applyFiltersAndSort(); 
+    } catch (error) {
+        showError("❌ Error loading data.");
+    } finally {
+        hideLoader();
+    }
 }
 
-<<<<<<< HEAD
+function applyFiltersAndSort() {
+    const sortOrder = document.getElementById("sortSelect").value;
+    let data = showingFavorites 
+        ? allUniversities.filter(uni => favorites.includes(uni.name)) 
+        : allUniversities;
 
-=======
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
+    const processed = [...data].sort((a, b) => 
+        sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+    );
+    displayUniversities(processed);
+}
+
 function displayUniversities(universities) {
-  const container = document.getElementById("results");
-  container.innerHTML = "";
+    const container = document.getElementById("results");
+    container.innerHTML = "";
 
-  if (universities.length === 0) {
-<<<<<<< HEAD
-    container.innerHTML = showingFavorites 
-      ? "<p class='error'>You haven't added any favorites yet!</p>" 
-=======
-    container.innerHTML = showingFavorites
-      ? "<p class='error'>You haven't added any favorites yet!</p>"
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
-      : "<p>No universities found.</p>";
-    return;
-  }
+    if (universities.length === 0) {
+        container.innerHTML = `<p style="text-align:center; opacity:0.6; grid-column: 1/-1;">No results found.</p>`;
+        return;
+    }
 
-<<<<<<< HEAD
-  // REQUIREMENT: .forEach() HOF
-=======
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
-  universities.forEach((uni) => {
-    const isFav = favorites.includes(uni.name);
-    const card = document.createElement("div");
-    card.className = "card";
+    universities.forEach(uni => {
+        const isFav = favorites.includes(uni.name);
+        
+        // 1. Create the main card element
+        const card = document.createElement("div");
+        card.className = "card";
 
-    card.innerHTML = `
-      <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('${uni.name.replace(/'/g, "\\'")}')">
-        ${isFav ? '❤️' : '🤍'}
-      </button>
-      <h3>${uni.name}</h3>
-      <p><strong>Country:</strong> ${uni.country}</p>
-      <p><strong>Domain:</strong> ${uni.domains?.[0] || "N/A"}</p>
-      <a href="${uni.web_pages?.[0] || "#"}" target="_blank">🌐 Visit Website</a>
-    `;
-    container.appendChild(card);
-  });
+        // 2. Define the inner structure (leaving out the onclick)
+        card.innerHTML = `
+            <button class="fav-btn">${isFav ? '❤️' : '🤍'}</button>
+            <h3>${uni.name}</h3>
+            <p><strong>Country:</strong> ${uni.country}</p>
+            <p><strong>Domain:</strong> ${uni.domains?.[0] || "N/A"}</p>
+            <a href="${uni.web_pages?.[0] || "#"}" target="_blank">🌐 Visit Website</a>
+        `;
+
+        // 3. Select the button we just made and attach the event properly
+        const favBtn = card.querySelector(".fav-btn");
+        favBtn.addEventListener("click", () => {
+            toggleFavorite(uni.name); // No escaping needed!
+        });
+
+        container.appendChild(card);
+    });
 }
-
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
 function toggleViewFavorites() {
-  showingFavorites = !showingFavorites;
-  updateFavButtonUI();
-  applyFiltersAndSort();
+    showingFavorites = !showingFavorites;
+    document.getElementById("favToggle").innerText = showingFavorites ? "View All" : "View Favorites";
+    applyFiltersAndSort();
 }
 
-function updateFavButtonUI() {
-  const btn = document.getElementById("favToggle");
-  if (btn) {
-    btn.innerText = showingFavorites ? "View All Results" : "View Favorites";
-  }
+function toggleFavorite(name) {
+    if (favorites.includes(name)) favorites = favorites.filter(n => n !== name);
+    else favorites.push(name);
+    localStorage.setItem("uni_favs", JSON.stringify(favorites));
+    applyFiltersAndSort();
 }
 
-function toggleFavorite(uniName) {
-  if (favorites.includes(uniName)) {
-    favorites = favorites.filter(name => name !== uniName);
-  } else {
-    favorites.push(uniName);
-  }
-  localStorage.setItem("uni_favs", JSON.stringify(favorites));
-  applyFiltersAndSort();
-}
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
 function toggleTheme() {
-  const isLight = document.body.classList.toggle("light-mode");
-  localStorage.setItem("theme", isLight ? "light" : "dark");
-  const themeBtn = document.getElementById("themeToggle");
-  if (themeBtn) themeBtn.innerText = isLight ? "🌙" : "☀️";
+    const isLight = document.body.classList.toggle("light-mode");
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+    document.getElementById("themeToggle").innerText = isLight ? "🌙" : "☀️";
 }
 
-function applySavedTheme() {
-  const savedTheme = localStorage.getItem("theme");
-<<<<<<< HEAD
-  if (savedTheme === "light") {
-    document.body.classList.add("light-mode");
-    const themeBtn = document.getElementById("themeToggle");
-    if (themeBtn) themeBtn.innerText = "🌙";
-  }
-}
-
-
-=======
-  const themeBtn = document.getElementById("themeToggle");
-  if (savedTheme === "light") {
-    document.body.classList.add("light-mode");
-    if (themeBtn) themeBtn.innerText = "🌙";
-  } else {
-    if (themeBtn) themeBtn.innerText = "☀️";
-  }
-}
-
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
 function handleSearch() {
-  const searchInput = document.getElementById("searchInput").value.trim();
-  const country = document.getElementById("countrySelect").value;
-  fetchUniversities(country, searchInput);
+    const name = document.getElementById("searchInput").value;
+    const country = document.getElementById("countrySelect").value;
+    fetchUniversities(country, name);
 }
 
 function showLoader() { document.getElementById("loader").classList.remove("hidden"); }
 function hideLoader() { document.getElementById("loader").classList.add("hidden"); }
-function showError(msg) { document.getElementById("results").innerHTML = `<p class="error">${msg}</p>`; }
+function showError(msg) { document.getElementById("results").innerHTML = msg; }
 
 window.onload = () => {
-  applySavedTheme();
-<<<<<<< HEAD
-  fetchUniversities("", ""); 
-=======
-  fetchUniversities("", "");
->>>>>>> 2375af1 (Updated project - fixed light/dark mode bug)
+    if (localStorage.getItem("theme") === "light") {
+        document.body.classList.add("light-mode");
+        document.getElementById("themeToggle").innerText = "🌙";
+    }
+    fetchUniversities("", ""); 
 };
