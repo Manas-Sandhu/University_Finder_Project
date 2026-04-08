@@ -4,7 +4,7 @@ let favorites = JSON.parse(localStorage.getItem("uni_favs")) || [];
 let showingFavorites = false; 
 let searchTimer;
 
-// This handles the "simultaneous" filtering without crashing the browser
+
 function debounceSearch() {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => handleSearch(), 300); 
@@ -35,7 +35,7 @@ function applyFiltersAndSort() {
         ? allUniversities.filter(uni => favorites.includes(uni.name)) 
         : allUniversities;
 
-    // We use a slice to avoid mutating the original array while sorting
+
     const sortedData = [...data].sort((a, b) => sortOrder === "asc" 
         ? a.name.localeCompare(b.name) 
         : b.name.localeCompare(a.name)
@@ -47,7 +47,6 @@ function applyFiltersAndSort() {
 function displayUniversities(universities) {
     const container = document.getElementById("results");
     
-    // PERFORMANCE FIX: Use a DocumentFragment to eliminate lag
     const fragment = document.createDocumentFragment();
     container.innerHTML = "";
 
@@ -56,7 +55,6 @@ function displayUniversities(universities) {
         return;
     }
 
-    // Performance limit: Render top 200 for immediate responsiveness
     const toRender = universities.slice(0, 200);
 
     toRender.forEach(uni => {
@@ -73,10 +71,10 @@ function displayUniversities(universities) {
         `;
 
         card.querySelector(".fav-btn").addEventListener("click", () => toggleFavorite(uni.name));
-        fragment.appendChild(card); // Add to memory fragment
+        fragment.appendChild(card); 
     });
 
-    container.appendChild(fragment); // Final update: Browser only repaints once
+    container.appendChild(fragment); 
 }
 
 function toggleFavorite(name) {
@@ -124,7 +122,7 @@ window.onload = () => {
         if (btn) btn.innerText = "🌙";
     }
 
-    // Simultaneous search logic: trigger on every keystroke
+
     const searchInput = document.getElementById("searchInput");
     if (searchInput) {
         searchInput.addEventListener("input", debounceSearch);
