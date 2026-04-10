@@ -1,4 +1,4 @@
-const API_BASE = "https://universities.hipolabs.com/search";
+const API_BASE = "http://universities.hipolabs.com/search";
 let allUniversities = []; 
 let favorites = JSON.parse(localStorage.getItem("uni_favs")) || [];
 let showingFavorites = false; 
