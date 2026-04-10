@@ -13,27 +13,27 @@
     </header>
 
     <section class="search-section">
-      <section class="search-section">
-        <div class="button-group">
-          <button class="btn-primary" onclick="handleSearch()">Search</button>
-          <button
-            class="btn-secondary"
-            id="favToggle"
-            onclick="toggleViewFavorites()"
-          >
-            View Favorites
-          </button>
-          <button class="btn-icon" id="themeToggle" onclick="toggleTheme()">
-            🌓
-          </button>
-        </div>
-      </section>
+      <div class="button-group">
+        <button class="btn-primary" onclick="handleSearch()">Search</button>
+        <button
+          class="btn-secondary"
+          id="favToggle"
+          onclick="toggleViewFavorites()"
+        >
+          View Favorites
+        </button>
+        <button class="btn-icon" id="themeToggle" onclick="toggleTheme()">
+          🌓
+        </button>
+      </div>
+
       <input
         type="text"
         id="searchInput"
         placeholder="Enter university name..."
       />
 
+      <label for="countrySelect">Select Country:</label>
       <select id="countrySelect">
         <option value="">All Countries</option>
         <option value="India">India</option>
@@ -43,6 +43,7 @@
         <option value="Australia">Australia</option>
       </select>
 
+      <label for="sortSelect">Sort By:</label>
       <select id="sortSelect" onchange="applyFiltersAndSort()">
         <option value="asc">Name (A-Z)</option>
         <option value="desc">Name (Z-A)</option>
@@ -56,3 +57,5 @@
 
     <main id="results"></main>
     <script src="script.js"></script>
+  </body>
+</html>
