@@ -1,9 +1,8 @@
-const API_BASE = "http://universities.hipolabs.com/search";
+const API_BASE = "https://universities.hipolabs.com/search";
 let allUniversities = []; 
 let favorites = JSON.parse(localStorage.getItem("uni_favs")) || [];
 let showingFavorites = false; 
 let searchTimer;
-
 
 function debounceSearch() {
     clearTimeout(searchTimer);
@@ -14,8 +13,11 @@ async function fetchUniversities(country, name) {
     try {
         const loader = document.getElementById("loader");
         if (loader) loader.classList.remove("hidden");
+
+        // ✅ FIX: fallback to "a" when name is empty so API returns results
+        const query = name.trim() === "" ? "a" : name.trim();
+        const url = `${API_BASE}?name=${encodeURIComponent(query)}${country ? `&country=${encodeURIComponent(country)}` : ''}`;
         
-        const url = `${API_BASE}?name=${encodeURIComponent(name)}${country ? `&country=${encodeURIComponent(country)}` : ''}`;
         const response = await fetch(url);
         const data = await response.json();
         
@@ -35,7 +37,6 @@ function applyFiltersAndSort() {
         ? allUniversities.filter(uni => favorites.includes(uni.name)) 
         : allUniversities;
 
-
     const sortedData = [...data].sort((a, b) => sortOrder === "asc" 
         ? a.name.localeCompare(b.name) 
         : b.name.localeCompare(a.name)
@@ -46,8 +47,6 @@ function applyFiltersAndSort() {
 
 function displayUniversities(universities) {
     const container = document.getElementById("results");
-    
-    const fragment = document.createDocumentFragment();
     container.innerHTML = "";
 
     if (universities.length === 0) {
@@ -55,36 +54,61 @@ function displayUniversities(universities) {
         return;
     }
 
+    const fragment = document.createDocumentFragment();
     const toRender = universities.slice(0, 200);
 
     toRender.forEach(uni => {
         const isFav = favorites.includes(uni.name);
         const card = document.createElement("div");
         card.className = "card";
-        
-        card.innerHTML = `
-            <button class="fav-btn">${isFav ? '❤️' : '🤍'}</button>
-            <h3>${uni.name}</h3>
-            <p><strong>Country:</strong> ${uni.country}</p>
-            <p><strong>Domain:</strong> ${uni.domains?.[0] || "N/A"}</p>
-            <a href="${uni.web_pages?.[0] || "#"}" target="_blank">🌐 Visit Website</a>
-        `;
 
-        card.querySelector(".fav-btn").addEventListener("click", () => toggleFavorite(uni.name));
+        const favBtn = document.createElement("button");
+        favBtn.className = "fav-btn";
+        favBtn.textContent = isFav ? "❤️" : "🤍";
+
+        const title = document.createElement("h3");
+        title.textContent = uni.name;
+
+        const country = document.createElement("p");
+        country.innerHTML = `<strong>Country:</strong> ${uni.country}`;
+
+        const domain = document.createElement("p");
+        domain.innerHTML = `<strong>Domain:</strong> ${uni.domains?.[0] || "N/A"}`;
+
+        const link = document.createElement("a");
+        link.href = uni.web_pages?.[0] || "#";
+        link.target = "_blank";
+        link.textContent = "🌐 Visit Website";
+
+        // ✅ FIX: pass favBtn into toggleFavorite so only that button updates
+        favBtn.addEventListener("click", () => toggleFavorite(uni.name, favBtn));
+
+        card.append(favBtn, title, country, domain, link);
         fragment.appendChild(card); 
     });
 
     container.appendChild(fragment); 
 }
 
-function toggleFavorite(name) {
-    if (favorites.includes(name)) {
-        favorites = favorites.filter(n => n !== name);
-    } else {
+// ✅ FIX: update only the clicked button, not the whole list
+function toggleFavorite(name, btnEl) {
+    const isNowFav = !favorites.includes(name);
+
+    if (isNowFav) {
         favorites.push(name);
+    } else {
+        favorites = favorites.filter(n => n !== name);
     }
+
     localStorage.setItem("uni_favs", JSON.stringify(favorites));
-    applyFiltersAndSort();
+
+    // Only update the single button that was clicked
+    if (btnEl) {
+        btnEl.textContent = isNowFav ? "❤️" : "🤍";
+    }
+
+    // Only re-render if in favorites view (cards need to disappear from list)
+    if (showingFavorites) applyFiltersAndSort();
 }
 
 function toggleViewFavorites() {
@@ -115,13 +139,11 @@ function handleSearch() {
 }
 
 window.onload = () => {
-    // Apply theme
     if (localStorage.getItem("theme") === "light") {
         document.body.classList.add("light-mode");
         const btn = document.getElementById("themeToggle");
         if (btn) btn.innerText = "🌙";
     }
-
 
     const searchInput = document.getElementById("searchInput");
     if (searchInput) {
